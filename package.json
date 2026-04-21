@@ -1,0 +1,8 @@
+{
+  "name": "monorepo-project",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "start": "npm run start -w system-app"
+  }
+}
