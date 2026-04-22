@@ -1,4 +1,4 @@
-import { Card } from "@repo/ui-components";
+import { Badge, Card } from "@repo/ui-components";
 import { formatDate } from "@repo/utils";
 
 const SAMPLE_ROWS = [
@@ -18,16 +18,27 @@ export function DashboardFeature() {
           gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
         }}
       >
-        {SAMPLE_ROWS.map((row) => (
-          <Card key={row.id} title={row.name}>
-            <p style={{ margin: "0 0 0.5rem" }}>
-              Value: <strong>{row.value}</strong>
-            </p>
-            <p style={{ margin: 0, fontSize: "0.85rem", color: "#6b7280" }}>
-              Updated {formatDate(row.updatedAt)}
-            </p>
-          </Card>
-        ))}
+        {SAMPLE_ROWS.map((row) => {
+          const tier =
+            row.value >= 150 ? "high" : row.value >= 100 ? "mid" : "low";
+          const variant =
+            tier === "high" ? "success" : tier === "mid" ? "accent" : "default";
+          const label =
+            tier === "high" ? "High" : tier === "mid" ? "Mid" : "Standard";
+          return (
+            <Card key={row.id} title={row.name}>
+              <p style={{ margin: "0 0 0.5rem" }}>
+                <Badge variant={variant} style={{ marginRight: 8 }}>
+                  {label}
+                </Badge>
+                Value: <strong>{row.value}</strong>
+              </p>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "#6b7280" }}>
+                Updated {formatDate(row.updatedAt)}
+              </p>
+            </Card>
+          );
+        })}
       </div>
     </section>
   );
