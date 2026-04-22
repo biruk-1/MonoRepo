@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@repo/ui-components";
-import { apiHelper, formatDate } from "@repo/utils";
+import { apiHelper, formatDate, isValidEmail } from "@repo/utils";
 
 export function LoginFeature() {
   const [email, setEmail] = useState("");
@@ -12,6 +12,10 @@ export function LoginFeature() {
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
+    if (email && !isValidEmail(email)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
     setLoading(true);
     try {
       await apiHelper("https://jsonplaceholder.typicode.com/posts/1", {
