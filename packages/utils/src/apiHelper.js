@@ -1,33 +1,72 @@
+/**
+ * JSON fetch helper. Pass `timeoutMs` (default 15000) to abort slow requests.
+ * Set `timeoutMs: 0` to disable. If you pass `signal`, either that signal or the
+ * timeout can abort the request.
+ *
+ * @param {string} url
+ * @param {RequestInit & { body?: unknown; timeoutMs?: number }} [options]
+ */
 export async function apiHelper(url, options = {}) {
-  const { method = "GET", headers = {}, body, ...rest } = options;
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
-    body: body != null ? JSON.stringify(body) : undefined,
-    ...rest,
-  });
+  const {
+    method = "GET",
+    headers = {},
+    body,
+    timeoutMs = 15000,
+    signal: userSignal,
+    ...rest
+  } = options;
 
-  const text = await res.text();
-  let data;
+  const combined = new AbortController();
+  if (userSignal) {
+    if (userSignal.aborted) {
+      combined.abort();
+    } else {
+      userSignal.addEventListener("abort", () => combined.abort(), { once: true });
+    }
+  }
+
+  let timeoutId;
+  if (timeoutMs > 0) {
+    timeoutId = setTimeout(() => {
+      combined.abort(new Error("Request timeout"));
+    }, timeoutMs);
+  }
+
   try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
-  }
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: body != null ? JSON.stringify(body) : undefined,
+      signal: combined.signal,
+      ...rest,
+    });
 
-  if (!res.ok) {
-    const message =
-      typeof data === "object" && data !== null && "message" in data
-        ? String(data.message)
-        : res.statusText;
-    const err = new Error(message);
-    err.status = res.status;
-    err.data = data;
-    throw err;
-  }
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
 
-  return data;
+    if (!res.ok) {
+      const message =
+        typeof data === "object" && data !== null && "message" in data
+          ? String(data.message)
+          : res.statusText;
+      const err = new Error(message);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+
+    return data;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
