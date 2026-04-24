@@ -81,6 +81,12 @@ npm start
 
 Open the URL Vite prints (often **http://localhost:5173**).
 
+**Tests** (workspace utilities)
+
+```bash
+npm test
+```
+
 **Production build**
 
 ```bash
