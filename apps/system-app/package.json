@@ -9,10 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@repo/feature-x": "*",
+    "@repo/feature-y": "*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@repo/feature-x": "*",
-    "@repo/feature-y": "*"
+    "react-router-dom": "^6.30.3"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
