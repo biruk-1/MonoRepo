@@ -6,13 +6,23 @@ import {
   isNonEmpty,
   isValidEmail,
   minLength,
+  passwordStrengthLabel,
+  truncate,
 } from "@repo/utils";
 
 const PASSWORD_MIN = 6;
 
+const strengthColor = {
+  "—": "#9ca3af",
+  weak: "#b91c1c",
+  ok: "#b45309",
+  strong: "#047857",
+};
+
 export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
@@ -20,6 +30,7 @@ export function LoginFeature() {
     password: "",
   });
   const submittedOn = formatDate(new Date());
+  const strength = passwordStrengthLabel(password);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -47,7 +58,7 @@ export function LoginFeature() {
         timeoutMs: 15000,
       });
       setMessage(
-        `Ready — checked API as ${email || "guest"} on ${submittedOn}`,
+        `Ready — checked API as ${truncate(email || "guest", 36)} on ${submittedOn}`,
       );
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Request failed");
@@ -79,13 +90,40 @@ export function LoginFeature() {
         />
         <TextField
           label="Password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
           error={fieldErrors.password}
         />
+        {password ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.8rem",
+              color: strengthColor[strength] ?? "#6b7280",
+            }}
+          >
+            Password strength: <strong>{strength}</strong>
+          </p>
+        ) : null}
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: "0.875rem",
+            color: "#374151",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={(e) => setShowPassword(e.target.checked)}
+          />
+          Show password
+        </label>
         <Button type="submit" disabled={loading}>
           {loading ? "Working…" : "Sign in"}
         </Button>
