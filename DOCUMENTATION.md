@@ -185,6 +185,16 @@ This section summarizes the latest integrated work for instructors and the team.
 
 ---
 
+## 8.3 Sprint update — deeper product increment
+
+| Collaborator | Delivered |
+|--------------|-----------|
+| **jowrlds** | **`Modal`** (focus lock / escape / scroll lock), **`Select`** filter; dashboard **tier filter**, **region** field + **by-region stats**, **JSON export** (batch + single row), **detail modal** with raw JSON; extra sample row **Delta Ops**. |
+| **BiileyX** | **`storage` helpers** + **`REMEMBER_EMAIL_KEY`** (remember email in `localStorage`), **`apiHelper` retries** for transient network / 5xx failures; **Vitest** for storage; login **remember email** checkbox + **retries: 1** on demo API. |
+| **Biruk (PM)** | **React Router v6** in `system-app` (**`/`** = login, **`/dashboard`** = metrics; nav in header); **CI concurrency** group to cancel redundant workflow runs; docs/README sync. |
+
+---
+
 ## 9. What could be done next (roadmap ideas)
 
 These are **not** required for the current milestone but match how this repo could grow toward a “full” monorepo like ride-share:

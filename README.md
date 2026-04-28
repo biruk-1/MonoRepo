@@ -10,9 +10,9 @@ Welcome. This repository is a **small, teaching-friendly monorepo**: one **React
 
 | Area | Contents |
 |------|-----------|
-| **Frontend** | `apps/system-app` — Vite, React 18, composes features on one page. |
-| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`, `TextField`, `Spinner`. |
-| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `apiHelper`, validation, `truncate`, `passwordStrengthLabel`, … |
+| **Frontend** | `apps/system-app` — Vite + React 18 + **React Router** (`/` login, `/dashboard`). |
+| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`, `TextField`, `Spinner`, `Modal`, `Select`. |
+| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `apiHelper` (timeout + retries), validation, `storage`, … |
 | **Features** | `packages/feature-x` (`LoginFeature`), `packages/feature-y` (`DashboardFeature`). |
 | **Tooling** | **npm workspaces** at the repo root (no Turborepo required for the demo). |
 
@@ -65,8 +65,8 @@ More detail: **[DOCUMENTATION.md §5–6](./DOCUMENTATION.md#5-the-three-collabo
 
 ## What you see when you run the app
 
-- **Login (Feature X):** email/password form, shared **Button**, validation via **`isValidEmail`**, demo **GET** via **`apiHelper`**.
-- **Dashboard (Feature Y):** sample metrics in **Cards**, **Badges** for value tiers, dates via **`formatDate`**.
+- **Login (Feature X):** at **`/`** — validation, optional **remember email**, `apiHelper` with retry.
+- **Dashboard (Feature Y):** at **`/dashboard`** — filters, tier **Select**, **Modal** row details, **JSON export**.
 
 ---
 
@@ -79,7 +79,7 @@ npm install
 npm start
 ```
 
-Open the URL Vite prints (often **http://localhost:5173**).
+Open the URL Vite prints (often **http://localhost:5173**). Use the header links for **`/`** (login) and **`/dashboard`**.
 
 **Tests** (workspace utilities)
 
