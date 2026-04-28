@@ -11,8 +11,8 @@ Welcome. This repository is a **small, teaching-friendly monorepo**: one **React
 | Area | Contents |
 |------|-----------|
 | **Frontend** | `apps/system-app` — Vite, React 18, composes features on one page. |
-| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`. |
-| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `apiHelper`, `isValidEmail`. |
+| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`, `TextField`, `Spinner`. |
+| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `apiHelper`, validation, `truncate`, `passwordStrengthLabel`, … |
 | **Features** | `packages/feature-x` (`LoginFeature`), `packages/feature-y` (`DashboardFeature`). |
 | **Tooling** | **npm workspaces** at the repo root (no Turborepo required for the demo). |
 

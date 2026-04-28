@@ -175,6 +175,16 @@ This section summarizes the latest integrated work for instructors and the team.
 
 ---
 
+## 8.2 Sprint update — follow-up increment
+
+| Collaborator | Delivered |
+|--------------|-----------|
+| **jowrlds** | **`Spinner`** component; dashboard **summary cards** (visible row count + sum of values); **Refresh stats** control with short loading state; **`Card`** merges custom `style` with defaults. |
+| **BiileyX** | **`truncate`**, **`passwordStrengthLabel`** in `@repo/utils`; **login** gains **show password**, strength hint, truncated email in success copy; extra **Vitest** coverage (`formRules`, `stringUtils`, `passwordHint`). |
+| **Biruk (PM)** | **Footer** in `system-app` with repo link; **README** / **DOCUMENTATION** refreshed for this increment. |
+
+---
+
 ## 9. What could be done next (roadmap ideas)
 
 These are **not** required for the current milestone but match how this repo could grow toward a “full” monorepo like ride-share:
