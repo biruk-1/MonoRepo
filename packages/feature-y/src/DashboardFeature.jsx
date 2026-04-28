@@ -1,23 +1,93 @@
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, Spinner, TextField } from "@repo/ui-components";
+import {
+  Badge,
+  Button,
+  Card,
+  Modal,
+  Select,
+  Spinner,
+  TextField,
+} from "@repo/ui-components";
 import { formatDate } from "@repo/utils";
 
 const SAMPLE_ROWS = [
-  { id: 1, name: "Alpha", value: 120, updatedAt: "2026-04-15T10:00:00Z" },
-  { id: 2, name: "Beta", value: 87, updatedAt: "2026-04-18T14:30:00Z" },
-  { id: 3, name: "Gamma", value: 204, updatedAt: "2026-04-20T09:15:00Z" },
+  {
+    id: 1,
+    name: "Alpha",
+    value: 120,
+    region: "North",
+    updatedAt: "2026-04-15T10:00:00Z",
+  },
+  {
+    id: 2,
+    name: "Beta",
+    value: 87,
+    region: "South",
+    updatedAt: "2026-04-18T14:30:00Z",
+  },
+  {
+    id: 3,
+    name: "Gamma",
+    value: 204,
+    region: "West",
+    updatedAt: "2026-04-20T09:15:00Z",
+  },
+  {
+    id: 4,
+    name: "Delta Ops",
+    value: 142,
+    region: "North",
+    updatedAt: "2026-04-21T16:00:00Z",
+  },
 ];
+
+function rowTier(row) {
+  if (row.value >= 150) {
+    return "high";
+  }
+  if (row.value >= 100) {
+    return "mid";
+  }
+  return "low";
+}
+
+function tierBadgeProps(tier) {
+  if (tier === "high") {
+    return { variant: "success", label: "High" };
+  }
+  if (tier === "mid") {
+    return { variant: "accent", label: "Mid" };
+  }
+  return { variant: "default", label: "Standard" };
+}
+
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function DashboardFeature() {
   const [query, setQuery] = useState("");
+  const [tierFilter, setTierFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [statsRefreshing, setStatsRefreshing] = useState(false);
+  const [detailRow, setDetailRow] = useState(null);
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
     let rows = SAMPLE_ROWS.filter((row) =>
       q ? row.name.toLowerCase().includes(q) : true,
     );
+    if (tierFilter !== "all") {
+      rows = rows.filter((row) => rowTier(row) === tierFilter);
+    }
     rows = [...rows].sort((a, b) => {
       if (sortBy === "value") {
         return b.value - a.value;
@@ -28,12 +98,16 @@ export function DashboardFeature() {
       return a.name.localeCompare(b.name);
     });
     return rows;
-  }, [query, sortBy]);
+  }, [query, sortBy, tierFilter]);
 
   const stats = useMemo(() => {
     const count = visibleRows.length;
     const totalValue = visibleRows.reduce((acc, r) => acc + r.value, 0);
-    return { count, totalValue };
+    const byRegion = visibleRows.reduce((acc, r) => {
+      acc[r.region] = (acc[r.region] ?? 0) + 1;
+      return acc;
+    }, {});
+    return { count, totalValue, byRegion };
   }, [visibleRows]);
 
   function handleRefreshStats() {
@@ -56,6 +130,22 @@ export function DashboardFeature() {
       >
         <Button type="button" onClick={handleRefreshStats} disabled={statsRefreshing}>
           {statsRefreshing ? "Refreshing…" : "Refresh stats"}
+        </Button>
+        <Button
+          type="button"
+          onClick={() =>
+            downloadJson("dashboard-export.json", {
+              exportedAt: new Date().toISOString(),
+              rowCount: visibleRows.length,
+              rows: visibleRows,
+            })
+          }
+          style={{
+            background: "#059669",
+            borderColor: "#047857",
+          }}
+        >
+          Export visible as JSON
         </Button>
         {statsRefreshing ? <Spinner label="Updating summary" /> : null}
       </div>
@@ -82,6 +172,21 @@ export function DashboardFeature() {
             </p>
           </Card>
         </div>
+        <div style={{ flex: "1 1 220px", minWidth: 180 }}>
+          <Card title="By region">
+            <ul style={{ margin: 0, paddingLeft: "1.1rem", fontSize: "0.9rem" }}>
+              {Object.keys(stats.byRegion).length === 0 ? (
+                <li style={{ color: "#6b7280" }}>No rows</li>
+              ) : (
+                Object.entries(stats.byRegion).map(([region, n]) => (
+                  <li key={region}>
+                    {region}: <strong>{n}</strong>
+                  </li>
+                ))
+              )}
+            </ul>
+          </Card>
+        </div>
       </div>
 
       <div
@@ -101,6 +206,19 @@ export function DashboardFeature() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. Alpha"
             aria-label="Filter dashboard rows by name"
+          />
+        </div>
+        <div style={{ flex: "1 1 160px", maxWidth: 220 }}>
+          <Select
+            label="Tier filter"
+            value={tierFilter}
+            onChange={(e) => setTierFilter(e.target.value)}
+            options={[
+              { value: "all", label: "All tiers" },
+              { value: "high", label: "High" },
+              { value: "mid", label: "Mid" },
+              { value: "low", label: "Standard" },
+            ]}
           />
         </div>
         <div
@@ -151,8 +269,8 @@ export function DashboardFeature() {
       {visibleRows.length === 0 ? (
         <Card title="No results">
           <p style={{ margin: 0, color: "#6b7280" }}>
-            No rows match “{query.trim()}”. Clear the search or try another
-            name.
+            No rows match your filters. Try clearing search or setting tier to
+            &quot;All tiers&quot;.
           </p>
         </Card>
       ) : (
@@ -164,16 +282,8 @@ export function DashboardFeature() {
           }}
         >
           {visibleRows.map((row) => {
-            const tier =
-              row.value >= 150 ? "high" : row.value >= 100 ? "mid" : "low";
-            const variant =
-              tier === "high"
-                ? "success"
-                : tier === "mid"
-                  ? "accent"
-                  : "default";
-            const label =
-              tier === "high" ? "High" : tier === "mid" ? "Mid" : "Standard";
+            const tier = rowTier(row);
+            const { variant, label } = tierBadgeProps(tier);
             return (
               <Card key={row.id} title={row.name}>
                 <p style={{ margin: "0 0 0.5rem" }}>
@@ -182,16 +292,63 @@ export function DashboardFeature() {
                   </Badge>
                   Value: <strong>{row.value}</strong>
                 </p>
+                <p style={{ margin: "0 0 0.35rem", fontSize: "0.85rem", color: "#6b7280" }}>
+                  Region: {row.region}
+                </p>
                 <p
-                  style={{ margin: 0, fontSize: "0.85rem", color: "#6b7280" }}
+                  style={{ margin: "0 0 0.75rem", fontSize: "0.85rem", color: "#6b7280" }}
                 >
                   Updated {formatDate(row.updatedAt)}
                 </p>
+                <Button type="button" onClick={() => setDetailRow(row)}>
+                  View details
+                </Button>
               </Card>
             );
           })}
         </div>
       )}
+
+      <Modal
+        open={detailRow != null}
+        title={detailRow ? `Record — ${detailRow.name}` : ""}
+        onClose={() => setDetailRow(null)}
+      >
+        {detailRow ? (
+          <div>
+            <pre
+              style={{
+                margin: "0 0 1rem",
+                padding: "0.75rem",
+                background: "#f3f4f6",
+                borderRadius: 8,
+                fontSize: "0.8rem",
+                overflow: "auto",
+                maxHeight: 240,
+              }}
+            >
+              {JSON.stringify(detailRow, null, 2)}
+            </pre>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <Button type="button" onClick={() => setDetailRow(null)}>
+                Close
+              </Button>
+              <Button
+                type="button"
+                onClick={() =>
+                  downloadJson(`row-${detailRow.id}.json`, detailRow)
+                }
+                style={{
+                  background: "#059669",
+                  borderColor: "#047857",
+                }}
+              >
+                Download row JSON
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </section>
   );
 }
