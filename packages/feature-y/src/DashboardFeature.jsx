@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Badge, Button, Card, TextField } from "@repo/ui-components";
+import { Badge, Button, Card, Spinner, TextField } from "@repo/ui-components";
 import { formatDate } from "@repo/utils";
 
 const SAMPLE_ROWS = [
@@ -11,6 +11,7 @@ const SAMPLE_ROWS = [
 export function DashboardFeature() {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [statsRefreshing, setStatsRefreshing] = useState(false);
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -29,9 +30,60 @@ export function DashboardFeature() {
     return rows;
   }, [query, sortBy]);
 
+  const stats = useMemo(() => {
+    const count = visibleRows.length;
+    const totalValue = visibleRows.reduce((acc, r) => acc + r.value, 0);
+    return { count, totalValue };
+  }, [visibleRows]);
+
+  function handleRefreshStats() {
+    setStatsRefreshing(true);
+    window.setTimeout(() => setStatsRefreshing(false), 450);
+  }
+
   return (
     <section>
       <h2 style={{ marginTop: 0 }}>Dashboard (Feature Y)</h2>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "0.75rem",
+          marginBottom: "0.75rem",
+        }}
+      >
+        <Button type="button" onClick={handleRefreshStats} disabled={statsRefreshing}>
+          {statsRefreshing ? "Refreshing…" : "Refresh stats"}
+        </Button>
+        {statsRefreshing ? <Spinner label="Updating summary" /> : null}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+          marginBottom: "1rem",
+        }}
+      >
+        <div style={{ flex: "1 1 140px", minWidth: 120 }}>
+          <Card title="Visible rows">
+            <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
+              {statsRefreshing ? "—" : stats.count}
+            </p>
+          </Card>
+        </div>
+        <div style={{ flex: "1 1 140px", minWidth: 120 }}>
+          <Card title="Sum of values">
+            <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
+              {statsRefreshing ? "—" : stats.totalValue}
+            </p>
+          </Card>
+        </div>
+      </div>
+
       <div
         style={{
           display: "flex",
