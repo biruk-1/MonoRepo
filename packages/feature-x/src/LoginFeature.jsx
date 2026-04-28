@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, TextField } from "@repo/ui-components";
 import {
   apiHelper,
   formatDate,
+  getStorageJSON,
   isNonEmpty,
   isValidEmail,
   minLength,
   passwordStrengthLabel,
+  REMEMBER_EMAIL_KEY,
+  removeStorageItem,
+  setStorageJSON,
   truncate,
 } from "@repo/utils";
 
@@ -23,6 +27,7 @@ export function LoginFeature() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
@@ -31,6 +36,14 @@ export function LoginFeature() {
   });
   const submittedOn = formatDate(new Date());
   const strength = passwordStrengthLabel(password);
+
+  useEffect(() => {
+    const saved = getStorageJSON(REMEMBER_EMAIL_KEY);
+    if (typeof saved === "string" && saved.trim()) {
+      setEmail(saved);
+      setRememberMe(true);
+    }
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -56,7 +69,13 @@ export function LoginFeature() {
       await apiHelper("https://jsonplaceholder.typicode.com/posts/1", {
         method: "GET",
         timeoutMs: 15000,
+        retries: 1,
       });
+      if (rememberMe) {
+        setStorageJSON(REMEMBER_EMAIL_KEY, email.trim());
+      } else {
+        removeStorageItem(REMEMBER_EMAIL_KEY);
+      }
       setMessage(
         `Ready — checked API as ${truncate(email || "guest", 36)} on ${submittedOn}`,
       );
@@ -123,6 +142,22 @@ export function LoginFeature() {
             onChange={(e) => setShowPassword(e.target.checked)}
           />
           Show password
+        </label>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: "0.875rem",
+            color: "#374151",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          Remember email on this device
         </label>
         <Button type="submit" disabled={loading}>
           {loading ? "Working…" : "Sign in"}

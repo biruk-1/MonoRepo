@@ -1,10 +1,8 @@
 /**
- * JSON fetch helper. Pass `timeoutMs` (default 15000) to abort slow requests.
- * Set `timeoutMs: 0` to disable. If you pass `signal`, either that signal or the
- * timeout can abort the request.
+ * JSON fetch with optional timeout and retries for flaky networks.
  *
  * @param {string} url
- * @param {RequestInit & { body?: unknown; timeoutMs?: number }} [options]
+ * @param {RequestInit & { body?: unknown; timeoutMs?: number; retries?: number }} [options]
  */
 export async function apiHelper(url, options = {}) {
   const {
@@ -12,9 +10,73 @@ export async function apiHelper(url, options = {}) {
     headers = {},
     body,
     timeoutMs = 15000,
+    retries = 0,
     signal: userSignal,
     ...rest
   } = options;
+
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await apiHelperOnce(url, {
+        method,
+        headers,
+        body,
+        timeoutMs,
+        signal: userSignal,
+        ...rest,
+      });
+    } catch (err) {
+      lastError = err;
+      const retryable = shouldRetry(err, attempt, retries);
+      if (!retryable) {
+        throw err;
+      }
+      await sleep(250 * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
+/**
+ * @param {unknown} err
+ * @param {number} attempt
+ * @param {number} retries
+ */
+function shouldRetry(err, attempt, retries) {
+  if (attempt >= retries) {
+    return false;
+  }
+  if (err && typeof err === "object" && "status" in err) {
+    const s = /** @type {{ status?: number }} */ (err).status;
+    if (typeof s === "number" && s >= 500 && s < 600) {
+      return true;
+    }
+  }
+  if (err instanceof TypeError) {
+    return true;
+  }
+  return false;
+}
+
+/** @param {number} ms */
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * @param {string} url
+ * @param {RequestInit & { body?: unknown; timeoutMs?: number; signal?: AbortSignal }} opts
+ */
+async function apiHelperOnce(url, opts) {
+  const {
+    method = "GET",
+    headers = {},
+    body,
+    timeoutMs = 15000,
+    signal: userSignal,
+    ...rest
+  } = opts;
 
   const combined = new AbortController();
   if (userSignal) {
