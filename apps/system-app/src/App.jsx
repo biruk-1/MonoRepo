@@ -8,6 +8,8 @@ export default function App() {
         fontFamily: 'system-ui, "Segoe UI", sans-serif',
         background: "#f9fafb",
         minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <a
@@ -60,6 +62,36 @@ export default function App() {
         <LoginFeature />
         <DashboardFeature />
       </main>
+      <footer
+        style={{
+          marginTop: "auto",
+          padding: "1.25rem 2rem",
+          borderTop: "1px solid #e5e7eb",
+          background: "#fff",
+          fontSize: "0.8rem",
+          color: "#6b7280",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 900,
+            margin: "0 auto",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "0.5rem 1.25rem",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>MonoRepo course demo — team delivery via workspace packages.</span>
+          <a
+            href="https://github.com/biruk-1/MonoRepo"
+            style={{ color: "#2563eb" }}
+          >
+            View on GitHub
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
