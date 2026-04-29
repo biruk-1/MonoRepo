@@ -1,6 +1,8 @@
 import { NavLink, Route, Routes, BrowserRouter } from "react-router-dom";
 import { LoginFeature } from "@repo/feature-x";
 import { DashboardFeature } from "@repo/feature-y";
+import { DocumentTitle } from "./DocumentTitle.jsx";
+import { NotFound } from "./NotFound.jsx";
 
 const linkBase = { marginRight: "1rem", textDecoration: "none", color: "#2563eb" };
 
@@ -110,8 +112,33 @@ export default function App() {
           }}
         >
           <Routes>
-            <Route path="/" element={<LoginFeature />} />
-            <Route path="/dashboard" element={<DashboardFeature />} />
+            <Route
+              path="/"
+              element={
+                <>
+                  <DocumentTitle title="Login · System App" />
+                  <LoginFeature />
+                </>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <>
+                  <DocumentTitle title="Dashboard · System App" />
+                  <DashboardFeature />
+                </>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <>
+                  <DocumentTitle title="Not found · System App" />
+                  <NotFound />
+                </>
+              }
+            />
           </Routes>
         </main>
         <footer
