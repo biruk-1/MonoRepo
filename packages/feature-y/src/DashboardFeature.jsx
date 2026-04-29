@@ -1,14 +1,20 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Badge,
   Button,
   Card,
   Modal,
   Select,
   Spinner,
+  Tabs,
   TextField,
 } from "@repo/ui-components";
 import { formatDate } from "@repo/utils";
+
+function formatInt(n) {
+  return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
 
 const SAMPLE_ROWS = [
   {
@@ -76,9 +82,20 @@ function downloadJson(filename, data) {
 export function DashboardFeature() {
   const [query, setQuery] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
+  const [regionFilter, setRegionFilter] = useState("all");
   const [sortBy, setSortBy] = useState("name");
+  const [viewMode, setViewMode] = useState("grid");
   const [statsRefreshing, setStatsRefreshing] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
+  const [exportNotice, setExportNotice] = useState(null);
+
+  useEffect(() => {
+    if (!exportNotice) {
+      return undefined;
+    }
+    const t = window.setTimeout(() => setExportNotice(null), 3200);
+    return () => window.clearTimeout(t);
+  }, [exportNotice]);
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -87,6 +104,9 @@ export function DashboardFeature() {
     );
     if (tierFilter !== "all") {
       rows = rows.filter((row) => rowTier(row) === tierFilter);
+    }
+    if (regionFilter !== "all") {
+      rows = rows.filter((row) => row.region === regionFilter);
     }
     rows = [...rows].sort((a, b) => {
       if (sortBy === "value") {
@@ -98,7 +118,7 @@ export function DashboardFeature() {
       return a.name.localeCompare(b.name);
     });
     return rows;
-  }, [query, sortBy, tierFilter]);
+  }, [query, sortBy, tierFilter, regionFilter]);
 
   const stats = useMemo(() => {
     const count = visibleRows.length;
@@ -113,6 +133,19 @@ export function DashboardFeature() {
   function handleRefreshStats() {
     setStatsRefreshing(true);
     window.setTimeout(() => setStatsRefreshing(false), 450);
+  }
+
+  function handleExport() {
+    downloadJson("dashboard-export.json", {
+      exportedAt: new Date().toISOString(),
+      rowCount: visibleRows.length,
+      rows: visibleRows,
+    });
+    setExportNotice({
+      variant: "success",
+      title: "Export started",
+      body: `Downloaded ${visibleRows.length} visible row(s) as JSON.`,
+    });
   }
 
   return (
@@ -133,13 +166,7 @@ export function DashboardFeature() {
         </Button>
         <Button
           type="button"
-          onClick={() =>
-            downloadJson("dashboard-export.json", {
-              exportedAt: new Date().toISOString(),
-              rowCount: visibleRows.length,
-              rows: visibleRows,
-            })
-          }
+          onClick={handleExport}
           style={{
             background: "#059669",
             borderColor: "#047857",
@@ -149,6 +176,14 @@ export function DashboardFeature() {
         </Button>
         {statsRefreshing ? <Spinner label="Updating summary" /> : null}
       </div>
+
+      {exportNotice ? (
+        <div style={{ marginBottom: "0.75rem" }}>
+          <Alert variant={exportNotice.variant} title={exportNotice.title}>
+            {exportNotice.body}
+          </Alert>
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -161,14 +196,14 @@ export function DashboardFeature() {
         <div style={{ flex: "1 1 140px", minWidth: 120 }}>
           <Card title="Visible rows">
             <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
-              {statsRefreshing ? "—" : stats.count}
+              {statsRefreshing ? "—" : formatInt(stats.count)}
             </p>
           </Card>
         </div>
         <div style={{ flex: "1 1 140px", minWidth: 120 }}>
           <Card title="Sum of values">
             <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>
-              {statsRefreshing ? "—" : stats.totalValue}
+              {statsRefreshing ? "—" : formatInt(stats.totalValue)}
             </p>
           </Card>
         </div>
@@ -180,7 +215,7 @@ export function DashboardFeature() {
               ) : (
                 Object.entries(stats.byRegion).map(([region, n]) => (
                   <li key={region}>
-                    {region}: <strong>{n}</strong>
+                    {region}: <strong>{formatInt(n)}</strong>
                   </li>
                 ))
               )}
@@ -189,125 +224,218 @@ export function DashboardFeature() {
         </div>
       </div>
 
+      <Tabs
+        id="dashboard-view"
+        value={viewMode}
+        onChange={setViewMode}
+        tabs={[
+          { id: "grid", label: "Card grid" },
+          { id: "table", label: "Table" },
+        ]}
+      />
       <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-          alignItems: "flex-end",
-          marginBottom: "1rem",
-        }}
+        id={`dashboard-view-panel-${viewMode}`}
+        role="tabpanel"
+        aria-labelledby={`dashboard-view-tab-${viewMode}`}
       >
-        <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
-          <TextField
-            label="Search by name"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. Alpha"
-            aria-label="Filter dashboard rows by name"
-          />
-        </div>
-        <div style={{ flex: "1 1 160px", maxWidth: 220 }}>
-          <Select
-            label="Tier filter"
-            value={tierFilter}
-            onChange={(e) => setTierFilter(e.target.value)}
-            options={[
-              { value: "all", label: "All tiers" },
-              { value: "high", label: "High" },
-              { value: "mid", label: "Mid" },
-              { value: "low", label: "Standard" },
-            ]}
-          />
-        </div>
         <div
           style={{
             display: "flex",
-            gap: "0.5rem",
             flexWrap: "wrap",
-            alignItems: "center",
+            gap: "0.75rem",
+            alignItems: "flex-end",
+            marginBottom: "1rem",
           }}
         >
-          <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>Sort:</span>
-          <Button
-            type="button"
-            onClick={() => setSortBy("name")}
+          <div style={{ flex: "1 1 200px", maxWidth: 280 }}>
+            <TextField
+              label="Search by name"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. Alpha"
+              aria-label="Filter dashboard rows by name"
+            />
+          </div>
+          <div style={{ flex: "1 1 160px", maxWidth: 220 }}>
+            <Select
+              label="Tier filter"
+              value={tierFilter}
+              onChange={(e) => setTierFilter(e.target.value)}
+              options={[
+                { value: "all", label: "All tiers" },
+                { value: "high", label: "High" },
+                { value: "mid", label: "Mid" },
+                { value: "low", label: "Standard" },
+              ]}
+            />
+          </div>
+          <div style={{ flex: "1 1 160px", maxWidth: 220 }}>
+            <Select
+              label="Region"
+              value={regionFilter}
+              onChange={(e) => setRegionFilter(e.target.value)}
+              options={[
+                { value: "all", label: "All regions" },
+                { value: "North", label: "North" },
+                { value: "South", label: "South" },
+                { value: "West", label: "West" },
+              ]}
+            />
+          </div>
+          <div
             style={{
-              opacity: sortBy === "name" ? 1 : 0.85,
-              background: sortBy === "name" ? "#1d4ed8" : "#64748b",
-              borderColor: sortBy === "name" ? "#1e40af" : "#475569",
+              display: "flex",
+              gap: "0.5rem",
+              flexWrap: "wrap",
+              alignItems: "center",
             }}
           >
-            Name
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setSortBy("value")}
-            style={{
-              opacity: sortBy === "value" ? 1 : 0.85,
-              background: sortBy === "value" ? "#1d4ed8" : "#64748b",
-              borderColor: sortBy === "value" ? "#1e40af" : "#475569",
-            }}
-          >
-            Value
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setSortBy("date")}
-            style={{
-              opacity: sortBy === "date" ? 1 : 0.85,
-              background: sortBy === "date" ? "#1d4ed8" : "#64748b",
-              borderColor: sortBy === "date" ? "#1e40af" : "#475569",
-            }}
-          >
-            Date
-          </Button>
+            <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>Sort:</span>
+            <Button
+              type="button"
+              onClick={() => setSortBy("name")}
+              style={{
+                opacity: sortBy === "name" ? 1 : 0.85,
+                background: sortBy === "name" ? "#1d4ed8" : "#64748b",
+                borderColor: sortBy === "name" ? "#1e40af" : "#475569",
+              }}
+            >
+              Name
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setSortBy("value")}
+              style={{
+                opacity: sortBy === "value" ? 1 : 0.85,
+                background: sortBy === "value" ? "#1d4ed8" : "#64748b",
+                borderColor: sortBy === "value" ? "#1e40af" : "#475569",
+              }}
+            >
+              Value
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setSortBy("date")}
+              style={{
+                opacity: sortBy === "date" ? 1 : 0.85,
+                background: sortBy === "date" ? "#1d4ed8" : "#64748b",
+                borderColor: sortBy === "date" ? "#1e40af" : "#475569",
+              }}
+            >
+              Date
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {visibleRows.length === 0 ? (
-        <Card title="No results">
-          <p style={{ margin: 0, color: "#6b7280" }}>
-            No rows match your filters. Try clearing search or setting tier to
-            &quot;All tiers&quot;.
-          </p>
-        </Card>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gap: "1rem",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-          }}
-        >
-          {visibleRows.map((row) => {
-            const tier = rowTier(row);
-            const { variant, label } = tierBadgeProps(tier);
-            return (
-              <Card key={row.id} title={row.name}>
-                <p style={{ margin: "0 0 0.5rem" }}>
-                  <Badge variant={variant} style={{ marginRight: 8 }}>
-                    {label}
-                  </Badge>
-                  Value: <strong>{row.value}</strong>
-                </p>
-                <p style={{ margin: "0 0 0.35rem", fontSize: "0.85rem", color: "#6b7280" }}>
-                  Region: {row.region}
-                </p>
-                <p
-                  style={{ margin: "0 0 0.75rem", fontSize: "0.85rem", color: "#6b7280" }}
-                >
-                  Updated {formatDate(row.updatedAt)}
-                </p>
-                <Button type="button" onClick={() => setDetailRow(row)}>
-                  View details
-                </Button>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+        {visibleRows.length === 0 ? (
+          <Card title="No results">
+            <p style={{ margin: 0, color: "#6b7280" }}>
+              No rows match your filters. Try clearing search, region, or tier.
+            </p>
+          </Card>
+        ) : viewMode === "grid" ? (
+          <div
+            style={{
+              display: "grid",
+              gap: "1rem",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            }}
+          >
+            {visibleRows.map((row) => {
+              const tier = rowTier(row);
+              const { variant, label } = tierBadgeProps(tier);
+              return (
+                <Card key={row.id} title={row.name}>
+                  <p style={{ margin: "0 0 0.5rem" }}>
+                    <Badge variant={variant} style={{ marginRight: 8 }}>
+                      {label}
+                    </Badge>
+                    Value: <strong>{formatInt(row.value)}</strong>
+                  </p>
+                  <p style={{ margin: "0 0 0.35rem", fontSize: "0.85rem", color: "#6b7280" }}>
+                    Region: {row.region}
+                  </p>
+                  <p
+                    style={{ margin: "0 0 0.75rem", fontSize: "0.85rem", color: "#6b7280" }}
+                  >
+                    Updated {formatDate(row.updatedAt)}
+                  </p>
+                  <Button type="button" onClick={() => setDetailRow(row)}>
+                    View details
+                  </Button>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: "0.9rem",
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: 8,
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#f9fafb", textAlign: "left" }}>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Name
+                  </th>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Tier
+                  </th>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Value
+                  </th>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Region
+                  </th>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Updated
+                  </th>
+                  <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleRows.map((row) => {
+                  const tier = rowTier(row);
+                  const { variant, label } = tierBadgeProps(tier);
+                  return (
+                    <tr key={row.id}>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        {row.name}
+                      </td>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        <Badge variant={variant}>{label}</Badge>
+                      </td>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        {formatInt(row.value)}
+                      </td>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        {row.region}
+                      </td>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        {formatDate(row.updatedAt)}
+                      </td>
+                      <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                        <Button type="button" onClick={() => setDetailRow(row)}>
+                          Details
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <Modal
         open={detailRow != null}
@@ -335,9 +463,7 @@ export function DashboardFeature() {
               </Button>
               <Button
                 type="button"
-                onClick={() =>
-                  downloadJson(`row-${detailRow.id}.json`, detailRow)
-                }
+                onClick={() => downloadJson(`row-${detailRow.id}.json`, detailRow)}
                 style={{
                   background: "#059669",
                   borderColor: "#047857",
