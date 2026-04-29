@@ -6,6 +6,7 @@ import {
   getStorageJSON,
   isNonEmpty,
   isValidEmail,
+  LAST_SIGNIN_AT_KEY,
   minLength,
   passwordStrengthLabel,
   REMEMBER_EMAIL_KEY,
@@ -34,6 +35,7 @@ export function LoginFeature() {
     email: "",
     password: "",
   });
+  const [lastSignInAt, setLastSignInAt] = useState(null);
   const submittedOn = formatDate(new Date());
   const strength = passwordStrengthLabel(password);
 
@@ -42,6 +44,10 @@ export function LoginFeature() {
     if (typeof saved === "string" && saved.trim()) {
       setEmail(saved);
       setRememberMe(true);
+    }
+    const prevSignIn = getStorageJSON(LAST_SIGNIN_AT_KEY);
+    if (typeof prevSignIn === "string" && prevSignIn.trim()) {
+      setLastSignInAt(prevSignIn.trim());
     }
   }, []);
 
@@ -76,6 +82,9 @@ export function LoginFeature() {
       } else {
         removeStorageItem(REMEMBER_EMAIL_KEY);
       }
+      const signedInAt = new Date().toISOString();
+      setStorageJSON(LAST_SIGNIN_AT_KEY, signedInAt);
+      setLastSignInAt(signedInAt);
       setMessage(
         `Ready — checked API as ${truncate(email || "guest", 36)} on ${submittedOn}`,
       );
@@ -89,6 +98,22 @@ export function LoginFeature() {
   return (
     <section style={{ marginBottom: "2rem" }}>
       <h2 style={{ marginTop: 0 }}>Login (Feature X)</h2>
+      {lastSignInAt ? (
+        <p
+          style={{
+            margin: "0 0 1rem",
+            fontSize: "0.85rem",
+            color: "#6b7280",
+          }}
+        >
+          Last successful sign-in:{" "}
+          <strong>{formatDate(lastSignInAt)}</strong>
+        </p>
+      ) : (
+        <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "#9ca3af" }}>
+          No prior sign-in recorded on this device.
+        </p>
+      )}
       <form
         onSubmit={handleSubmit}
         style={{

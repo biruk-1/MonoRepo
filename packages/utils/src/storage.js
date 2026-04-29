@@ -52,3 +52,6 @@ export function removeStorageItem(key) {
 
 /** Workspace-local key for remembered login email (demo only). */
 export const REMEMBER_EMAIL_KEY = "monorepo:remembered-email";
+
+/** ISO timestamp string of last successful demo sign-in (stored as JSON string). */
+export const LAST_SIGNIN_AT_KEY = "monorepo:last-signin-at";
