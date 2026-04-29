@@ -11,8 +11,8 @@ Welcome. This repository is a **small, teaching-friendly monorepo**: one **React
 | Area | Contents |
 |------|-----------|
 | **Frontend** | `apps/system-app` — Vite + React 18 + **React Router** (`/` login, `/dashboard`). |
-| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`, `TextField`, `Spinner`, `Modal`, `Select`. |
-| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `apiHelper` (timeout + retries), validation, `storage`, … |
+| **Shared UI** | `packages/ui-components` (`@repo/ui-components`) — `Button`, `Card`, `Badge`, `TextField`, `Spinner`, `Modal`, `Select`, `Tabs`, `Alert`. |
+| **Shared utilities** | `packages/utils` (`@repo/utils`) — `formatDate`, `formatInteger`, `apiHelper` (timeout + retries), validation, `storage`, … |
 | **Features** | `packages/feature-x` (`LoginFeature`), `packages/feature-y` (`DashboardFeature`). |
 | **Tooling** | **npm workspaces** at the repo root (no Turborepo required for the demo). |
 
@@ -65,8 +65,9 @@ More detail: **[DOCUMENTATION.md §5–6](./DOCUMENTATION.md#5-the-three-collabo
 
 ## What you see when you run the app
 
-- **Login (Feature X):** at **`/`** — validation, optional **remember email**, `apiHelper` with retry.
-- **Dashboard (Feature Y):** at **`/dashboard`** — filters, tier **Select**, **Modal** row details, **JSON export**.
+- **Login (Feature X):** at **`/`** — validation, optional **remember email**, **last sign-in** hint, `apiHelper` with retry.
+- **Dashboard (Feature Y):** at **`/dashboard`** — filters, tier **Select**, **region** filter, **table** or **card** view, **Modal** row details, **JSON export**.
+- **Unknown URLs:** **`404`-style** `NotFound` page; browser **tab title** updates per route (`DocumentTitle`).
 
 ---
 

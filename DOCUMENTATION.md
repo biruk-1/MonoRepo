@@ -195,6 +195,16 @@ This section summarizes the latest integrated work for instructors and the team.
 
 ---
 
+## 8.4 Sprint update — UX & formatting increment
+
+| Collaborator | Delivered |
+|--------------|-----------|
+| **jowrlds** | **`Tabs`** and **`Alert`** in `@repo/ui-components`; dashboard **region** filter, **card vs table** view toggle, and a short **export confirmation** alert. |
+| **BiileyX** | **`formatInteger`** / **`formatCompact`** in `@repo/utils` (+ Vitest), **`LAST_SIGNIN_AT_KEY`** and login UI showing **last successful sign-in** (from `localStorage`). |
+| **Biruk (PM)** | **`NotFound`** route (`path="*"`), per-route **`document.title`** via `DocumentTitle`; documentation **§8.4**; README note for 404 + titles. |
+
+---
+
 ## 9. What could be done next (roadmap ideas)
 
 These are **not** required for the current milestone but match how this repo could grow toward a “full” monorepo like ride-share:
