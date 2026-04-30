@@ -4,7 +4,9 @@ import {
   Badge,
   Button,
   Card,
+  Divider,
   Modal,
+  ProgressBar,
   Select,
   Spinner,
   Tabs,
@@ -130,6 +132,11 @@ export function DashboardFeature() {
     return { count, totalValue, byRegion };
   }, [visibleRows]);
 
+  const maxVisibleValue = useMemo(
+    () => Math.max(1, ...visibleRows.map((r) => r.value)),
+    [visibleRows],
+  );
+
   function handleRefreshStats() {
     setStatsRefreshing(true);
     window.setTimeout(() => setStatsRefreshing(false), 450);
@@ -147,6 +154,19 @@ export function DashboardFeature() {
       body: `Downloaded ${visibleRows.length} visible row(s) as JSON.`,
     });
   }
+
+  function resetFilters() {
+    setQuery("");
+    setTierFilter("all");
+    setRegionFilter("all");
+    setSortBy("name");
+  }
+
+  const filtersActive =
+    query.trim() !== "" ||
+    tierFilter !== "all" ||
+    regionFilter !== "all" ||
+    sortBy !== "name";
 
   return (
     <section>
@@ -173,6 +193,9 @@ export function DashboardFeature() {
           }}
         >
           Export visible as JSON
+        </Button>
+        <Button type="button" onClick={resetFilters} disabled={!filtersActive}>
+          Reset filters
         </Button>
         {statsRefreshing ? <Spinner label="Updating summary" /> : null}
       </div>
@@ -223,6 +246,8 @@ export function DashboardFeature() {
           </Card>
         </div>
       </div>
+
+      <Divider label="Filters & view" />
 
       <Tabs
         id="dashboard-view"
@@ -361,6 +386,13 @@ export function DashboardFeature() {
                   >
                     Updated {formatDate(row.updatedAt)}
                   </p>
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    <ProgressBar
+                      label="Share of highest visible value"
+                      value={row.value}
+                      max={maxVisibleValue}
+                    />
+                  </div>
                   <Button type="button" onClick={() => setDetailRow(row)}>
                     View details
                   </Button>

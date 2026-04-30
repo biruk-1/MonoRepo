@@ -7,3 +7,5 @@ export { Modal } from "./src/Modal.jsx";
 export { Select } from "./src/Select.jsx";
 export { Tabs } from "./src/Tabs.jsx";
 export { Alert } from "./src/Alert.jsx";
+export { Divider } from "./src/Divider.jsx";
+export { ProgressBar } from "./src/ProgressBar.jsx";
