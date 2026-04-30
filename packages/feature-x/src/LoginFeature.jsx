@@ -3,6 +3,7 @@ import { Button, TextField } from "@repo/ui-components";
 import {
   apiHelper,
   formatDate,
+  formatRelativeSince,
   getStorageJSON,
   isNonEmpty,
   isValidEmail,
@@ -108,6 +109,10 @@ export function LoginFeature() {
         >
           Last successful sign-in:{" "}
           <strong>{formatDate(lastSignInAt)}</strong>
+          <span style={{ fontWeight: 400, color: "#9ca3af" }}>
+            {" "}
+            ({formatRelativeSince(lastSignInAt)})
+          </span>
         </p>
       ) : (
         <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "#9ca3af" }}>
