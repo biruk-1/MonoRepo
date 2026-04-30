@@ -205,6 +205,16 @@ This section summarizes the latest integrated work for instructors and the team.
 
 ---
 
+## 8.5 Sprint update — layout & wayfinding polish
+
+| Collaborator | Delivered |
+|--------------|-----------|
+| **jowrlds** | **`Divider`** and **`ProgressBar`** in `@repo/ui-components`; dashboard **reset filters** control, labeled **divider** before the view tabs, and **per-card progress** vs. the highest visible value (grid view). |
+| **BiileyX** | **`formatRelativeSince`** in `@repo/utils` (+ Vitest); login shows **relative** time next to the last sign-in timestamp. |
+| **Biruk (PM)** | **`ScrollToTop`** on route changes in `system-app`; documentation **§8.5**; README sync. |
+
+---
+
 ## 9. What could be done next (roadmap ideas)
 
 These are **not** required for the current milestone but match how this repo could grow toward a “full” monorepo like ride-share:
