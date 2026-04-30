@@ -3,12 +3,14 @@ import { LoginFeature } from "@repo/feature-x";
 import { DashboardFeature } from "@repo/feature-y";
 import { DocumentTitle } from "./DocumentTitle.jsx";
 import { NotFound } from "./NotFound.jsx";
+import { ScrollToTop } from "./ScrollToTop.jsx";
 
 const linkBase = { marginRight: "1rem", textDecoration: "none", color: "#2563eb" };
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div
         style={{
           fontFamily: 'system-ui, "Segoe UI", sans-serif',
