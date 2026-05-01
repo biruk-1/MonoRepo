@@ -9,3 +9,5 @@ export { Tabs } from "./src/Tabs.jsx";
 export { Alert } from "./src/Alert.jsx";
 export { Divider } from "./src/Divider.jsx";
 export { ProgressBar } from "./src/ProgressBar.jsx";
+export { Switch } from "./src/Switch.jsx";
+export { Tag } from "./src/Tag.jsx";

@@ -9,10 +9,12 @@ import {
   ProgressBar,
   Select,
   Spinner,
+  Switch,
   Tabs,
+  Tag,
   TextField,
 } from "@repo/ui-components";
-import { formatDate } from "@repo/utils";
+import { formatDate, truncate } from "@repo/utils";
 
 function formatInt(n) {
   return Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -81,6 +83,26 @@ function downloadJson(filename, data) {
   URL.revokeObjectURL(url);
 }
 
+function tierFilterLabel(tier) {
+  if (tier === "high") {
+    return "High";
+  }
+  if (tier === "mid") {
+    return "Mid";
+  }
+  return "Standard";
+}
+
+function sortLabel(key) {
+  if (key === "value") {
+    return "Value";
+  }
+  if (key === "date") {
+    return "Date";
+  }
+  return "Name";
+}
+
 export function DashboardFeature() {
   const [query, setQuery] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
@@ -90,6 +112,7 @@ export function DashboardFeature() {
   const [statsRefreshing, setStatsRefreshing] = useState(false);
   const [detailRow, setDetailRow] = useState(null);
   const [exportNotice, setExportNotice] = useState(null);
+  const [showRowIds, setShowRowIds] = useState(false);
 
   useEffect(() => {
     if (!exportNotice) {
@@ -249,6 +272,15 @@ export function DashboardFeature() {
 
       <Divider label="Filters & view" />
 
+      <div style={{ marginBottom: "0.65rem" }}>
+        <Switch
+          id="dashboard-show-row-ids"
+          checked={showRowIds}
+          onChange={setShowRowIds}
+          label="Show record IDs in titles and table"
+        />
+      </div>
+
       <Tabs
         id="dashboard-view"
         value={viewMode}
@@ -353,6 +385,49 @@ export function DashboardFeature() {
           </div>
         </div>
 
+        {filtersActive ? (
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+              alignItems: "center",
+              marginBottom: "1rem",
+            }}
+          >
+            <span style={{ fontSize: "0.8rem", color: "#6b7280" }}>Active filters:</span>
+            {query.trim() ? (
+              <Tag
+                onRemove={() => setQuery("")}
+                removeLabel="Clear search filter"
+              >
+                Search: “{truncate(query.trim(), 28)}”
+              </Tag>
+            ) : null}
+            {tierFilter !== "all" ? (
+              <Tag
+                onRemove={() => setTierFilter("all")}
+                removeLabel="Clear tier filter"
+              >
+                Tier: {tierFilterLabel(tierFilter)}
+              </Tag>
+            ) : null}
+            {regionFilter !== "all" ? (
+              <Tag
+                onRemove={() => setRegionFilter("all")}
+                removeLabel="Clear region filter"
+              >
+                Region: {regionFilter}
+              </Tag>
+            ) : null}
+            {sortBy !== "name" ? (
+              <Tag onRemove={() => setSortBy("name")} removeLabel="Reset sort to name">
+                Sort: {sortLabel(sortBy)}
+              </Tag>
+            ) : null}
+          </div>
+        ) : null}
+
         {visibleRows.length === 0 ? (
           <Card title="No results">
             <p style={{ margin: 0, color: "#6b7280" }}>
@@ -371,7 +446,10 @@ export function DashboardFeature() {
               const tier = rowTier(row);
               const { variant, label } = tierBadgeProps(tier);
               return (
-                <Card key={row.id} title={row.name}>
+                <Card
+                  key={row.id}
+                  title={showRowIds ? `#${row.id} · ${row.name}` : row.name}
+                >
                   <p style={{ margin: "0 0 0.5rem" }}>
                     <Badge variant={variant} style={{ marginRight: 8 }}>
                       {label}
@@ -414,6 +492,11 @@ export function DashboardFeature() {
             >
               <thead>
                 <tr style={{ background: "#f9fafb", textAlign: "left" }}>
+                  {showRowIds ? (
+                    <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
+                      ID
+                    </th>
+                  ) : null}
                   <th style={{ padding: "0.65rem 0.75rem", borderBottom: "1px solid #e5e7eb" }}>
                     Name
                   </th>
@@ -440,6 +523,11 @@ export function DashboardFeature() {
                   const { variant, label } = tierBadgeProps(tier);
                   return (
                     <tr key={row.id}>
+                      {showRowIds ? (
+                        <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
+                          {row.id}
+                        </td>
+                      ) : null}
                       <td style={{ padding: "0.6rem 0.75rem", borderBottom: "1px solid #f3f4f6" }}>
                         {row.name}
                       </td>
@@ -471,7 +559,13 @@ export function DashboardFeature() {
 
       <Modal
         open={detailRow != null}
-        title={detailRow ? `Record — ${detailRow.name}` : ""}
+        title={
+          detailRow
+            ? showRowIds
+              ? `Record #${detailRow.id} — ${detailRow.name}`
+              : `Record — ${detailRow.name}`
+            : ""
+        }
         onClose={() => setDetailRow(null)}
       >
         {detailRow ? (
