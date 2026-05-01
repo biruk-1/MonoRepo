@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Button, TextField } from "@repo/ui-components";
 import {
   apiHelper,
+  buildSupportBundle,
+  copyTextToClipboard,
   formatDate,
   formatRelativeSince,
   getStorageJSON,
@@ -37,6 +39,7 @@ export function LoginFeature() {
     password: "",
   });
   const [lastSignInAt, setLastSignInAt] = useState(null);
+  const [copyHint, setCopyHint] = useState("");
   const submittedOn = formatDate(new Date());
   const strength = passwordStrengthLabel(password);
 
@@ -51,6 +54,14 @@ export function LoginFeature() {
       setLastSignInAt(prevSignIn.trim());
     }
   }, []);
+
+  useEffect(() => {
+    if (!copyHint) {
+      return undefined;
+    }
+    const t = window.setTimeout(() => setCopyHint(""), 2500);
+    return () => window.clearTimeout(t);
+  }, [copyHint]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -94,6 +105,15 @@ export function LoginFeature() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleCopySupportBundle() {
+    const text = buildSupportBundle({
+      email,
+      lastSignInAt,
+    });
+    const ok = await copyTextToClipboard(text);
+    setCopyHint(ok ? "Support bundle copied to clipboard." : "Clipboard unavailable in this browser.");
   }
 
   return (
@@ -193,6 +213,17 @@ export function LoginFeature() {
           {loading ? "Working…" : "Sign in"}
         </Button>
       </form>
+      <div style={{ marginTop: "0.75rem", maxWidth: 320 }}>
+        <Button type="button" onClick={handleCopySupportBundle}>
+          Copy support bundle
+        </Button>
+        <p style={{ margin: "0.35rem 0 0", fontSize: "0.8rem", color: "#6b7280" }}>
+          Copies a short diagnostics block (email + sign-in metadata) for demos or bug reports.
+        </p>
+      </div>
+      {copyHint ? (
+        <p style={{ marginTop: 8, fontSize: "0.85rem", color: "#047151" }}>{copyHint}</p>
+      ) : null}
       {message ? (
         <p style={{ marginTop: 12, color: "#374151" }}>{message}</p>
       ) : null}
