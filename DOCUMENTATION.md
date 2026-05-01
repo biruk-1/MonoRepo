@@ -215,6 +215,16 @@ This section summarizes the latest integrated work for instructors and the team.
 
 ---
 
+## 8.6 Sprint update — filters, clipboard & shell polish
+
+| Collaborator | Delivered |
+|--------------|-----------|
+| **jowrlds** | **`Switch`** and **`Tag`** in `@repo/ui-components`; dashboard **show record IDs** toggle, **active filter chips** with quick clear, and **ID column** in table view when enabled. |
+| **BiileyX** | **`copyTextToClipboard`**, **`buildSupportBundle`** in `@repo/utils` (+ Vitest); login **Copy support bundle** for demo diagnostics. |
+| **Biruk (PM)** | **`SessionBanner`** (session-dismissible demo notice) and global **`prefers-reduced-motion`** styles; documentation **§8.6**; README sync. |
+
+---
+
 ## 9. What could be done next (roadmap ideas)
 
 These are **not** required for the current milestone but match how this repo could grow toward a “full” monorepo like ride-share:

@@ -3,7 +3,9 @@ import { LoginFeature } from "@repo/feature-x";
 import { DashboardFeature } from "@repo/feature-y";
 import { DocumentTitle } from "./DocumentTitle.jsx";
 import { NotFound } from "./NotFound.jsx";
+import { ReducedMotionRootStyles } from "./ReducedMotionRootStyles.jsx";
 import { ScrollToTop } from "./ScrollToTop.jsx";
+import { SessionBanner } from "./SessionBanner.jsx";
 
 const linkBase = { marginRight: "1rem", textDecoration: "none", color: "#2563eb" };
 
@@ -11,6 +13,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <ReducedMotionRootStyles />
       <div
         style={{
           fontFamily: 'system-ui, "Segoe UI", sans-serif',
@@ -41,6 +44,7 @@ export default function App() {
         >
           Skip to main content
         </a>
+        <SessionBanner />
         <header
           style={{
             position: "sticky",
